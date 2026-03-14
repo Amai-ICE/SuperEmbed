@@ -4,8 +4,6 @@ import com.akuleshov7.ktoml.file.TomlFileReader
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
 import uk.amaiice.superembed.serializer.SnowflakeSerializer
-import java.io.File
-import kotlin.system.exitProcess
 
 object TomlData {
     const val CONFIG_PATH = "config.toml"
@@ -14,7 +12,7 @@ object TomlData {
         runCatching {
             TomlFileReader.decodeFromFile(Data.serializer(), CONFIG_PATH)
         }.fold(
-            {return@fold it},
+            { return@fold it },
             {
                 println("failed to read config file.")
                 throw ConfigException(buildString {
@@ -31,7 +29,12 @@ object TomlData {
     data class Data(val secrets: Secrets)
 
     @Serializable
-    data class Secrets(val token: String,@Serializable(with = SnowflakeSerializer::class) val devServerID: Snowflake)
+    data class Secrets(
+        val token: String,
+        @Serializable(with = SnowflakeSerializer::class)
+        val devServerID: Snowflake,
+        val isDebug: Boolean,
+    )
 
-    class ConfigException(message: String): RuntimeException(message)
+    class ConfigException(message: String) : RuntimeException(message)
 }

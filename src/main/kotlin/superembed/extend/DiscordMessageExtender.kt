@@ -28,6 +28,11 @@ object DiscordMessageExtender {
                 }
             }
         }
+
+        if (discordMessageData.ish1Text) {
+            result = result.toH1Text()
+        }
+
         if (discordMessageData.isBold) {
             result = result.toBold()
         }
@@ -39,6 +44,10 @@ object DiscordMessageExtender {
         }
 
         return result
+    }
+
+    private fun String.toH1Text(): String {
+        return "# $this"
     }
 
     private fun String.toLinkMessage(url: String): String {

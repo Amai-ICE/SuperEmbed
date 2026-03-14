@@ -4,6 +4,7 @@ data class DiscordMessageData(
     val isBold: Boolean = false,
     val isItalic: Boolean = false,
     val isSubtext: Boolean = false,
+    val ish1Text: Boolean = false,
     val hasLink: String = "",
     val timestampData: DiscordMessageExtender.TimestampData = DiscordMessageExtender.TimestampData.EMPTY,
 )

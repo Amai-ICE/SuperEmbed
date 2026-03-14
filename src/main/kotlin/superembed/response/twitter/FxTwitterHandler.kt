@@ -12,6 +12,7 @@ import dev.kord.rest.builder.component.mediaGallery
 import dev.kord.rest.builder.component.section
 import dev.kord.rest.builder.component.separator
 import dev.kord.rest.builder.message.container
+import uk.amaiice.superembed.Logger.logger
 import uk.amaiice.superembed.api.APIRouter
 import uk.amaiice.superembed.api.data.FxTwitterResponse
 import uk.amaiice.superembed.api.data.Tweet
@@ -62,6 +63,8 @@ object FxTwitterHandler : IMessageHandler {
         if (data is FxTwitterResponse) {
             message.channel.createMessage {
                 flags = MessageFlags(MessageFlag.IsComponentsV2)
+
+                logger.info { "Called Handling Twitter by ${message.author?.id} to URL: ${urls.first()}" }
 
                 var tweet: Tweet? = data.tweet
 
@@ -174,7 +177,7 @@ object FxTwitterHandler : IMessageHandler {
                         content = """Embedメッセージを非表示にできませんでした。
                             |MessageContentの権限が付与されているか確認してください。
                         """.trimMargin()
-                        println(e)
+                        logger.error { "Failed to suppress embeds for message ${message.id} in channel ${message.channelId}. Error: ${e.message}" }
                     }
                 }
             )

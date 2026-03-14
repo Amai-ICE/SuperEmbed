@@ -33,6 +33,9 @@ dependencies {
 
     //kordとかのログ処理用
     implementation(libs.slf4j.simple)
+
+    // SuperEmbedのログ処理用
+    implementation(libs.kotlin.logging.jvm)
 }
 
 // Shadow時に正しく実行できるように、メインクラスの指定を行う。
