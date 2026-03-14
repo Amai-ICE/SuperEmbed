@@ -16,7 +16,6 @@ import uk.amaiice.superembed.Logger.logger
 import uk.amaiice.superembed.api.APIRouter
 import uk.amaiice.superembed.api.data.FxTwitterResponse
 import uk.amaiice.superembed.api.data.Tweet
-import uk.amaiice.superembed.extend.DiscordMessageData
 import uk.amaiice.superembed.extend.DiscordMessageExtender
 import uk.amaiice.superembed.extend.DiscordMessageExtender.toDiscordMessage
 import uk.amaiice.superembed.handler.IMessageHandler
@@ -81,8 +80,8 @@ object FxTwitterHandler : IMessageHandler {
                         if (hasThumbnail) {
                             section {
                                 val accountLink =
-                                    "@${author.screenName}".toDiscordMessage(DiscordMessageData(hasLink = author.url))
-                                val accountDisplayName = author.name.toDiscordMessage(DiscordMessageData(isBold = true))
+                                    "@${author.screenName}".toDiscordMessage { link(author.url) }
+                                val accountDisplayName = author.name.toDiscordMessage { bold() }
                                 textDisplay(
                                     "$accountLink / $accountDisplayName",
                                 )
@@ -118,27 +117,23 @@ object FxTwitterHandler : IMessageHandler {
 
                         textDisplay(
                             tweet.getEngagements()
-                                .toDiscordMessage(DiscordMessageData(isSubtext = true))
+                                .toDiscordMessage { subtext() }
                         )
 
                         val simpleTimestamp = "${tweet.createdTimestamp}".toDiscordMessage(
-                            DiscordMessageData(
-                                timestampData = DiscordMessageExtender.TimestampData.SIMPLE
-                            )
+                            DiscordMessageExtender.style {
+                                timestamp(DiscordMessageExtender.TimestampData.SIMPLE)
+                            }
                         )
 
                         val relativeTimestamp = "${tweet.createdTimestamp}".toDiscordMessage(
-                            DiscordMessageData(
-                                timestampData = DiscordMessageExtender.TimestampData.RELATIVE
-                            )
+                            DiscordMessageExtender.style {
+                                timestamp(DiscordMessageExtender.TimestampData.RELATIVE)
+                            }
                         )
 
                         textDisplay(
-                            "Tweeted at $simpleTimestamp/ Relative: $relativeTimestamp".toDiscordMessage(
-                                DiscordMessageData(
-                                    isSubtext = true,
-                                )
-                            )
+                            "Tweeted at $simpleTimestamp/ Relative: $relativeTimestamp".toDiscordMessage { subtext() }
                         )
 
                         if (useLinkButton) {

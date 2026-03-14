@@ -14,14 +14,11 @@ import uk.amaiice.superembed.Logger.logger
 import uk.amaiice.superembed.commands.tfc.TFCForgeCalculator.calculate
 import uk.amaiice.superembed.commands.tfc.TFCForgeCalculator.plusHammers
 import uk.amaiice.superembed.config.TomlData
-import uk.amaiice.superembed.extend.DiscordMessageData
 import uk.amaiice.superembed.extend.DiscordMessageExtender.toDiscordMessage
 import uk.amaiice.superembed.handler.CommandHandler
 import uk.amaiice.superembed.handler.ICommandHandler
 
 object TFCForgeHandler : ICommandHandler {
-    private const val SECTION_ACCESSORY_ICON_URL = "https://cdn.discordapp.com/embed/avatars/0.png"
-
     override val commandData: CommandHandler.GuildCommandData = CommandHandler.GuildCommandData(
         guildID = TomlData.get().secrets.devServerID,
         name = "forge",
@@ -55,7 +52,7 @@ object TFCForgeHandler : ICommandHandler {
     private fun List<Int>.hammerCountParser(): List<Int> {
         val result = mutableListOf<Int>()
         this.forEachIndexed { index, plusHammer ->
-            for (i in 0..<plusHammer) {
+            repeat(plusHammer) {
                 result.add(plusHammers[index])
             }
         }
@@ -108,7 +105,7 @@ object TFCForgeHandler : ICommandHandler {
                     separator { spacing = SeparatorSpacingSize.Small }
 
                     textDisplay("結果")
-                    textDisplay(resultList.emojiMapper().toDiscordMessage(DiscordMessageData(ish1Text = true)))
+                    textDisplay(resultList.emojiMapper().toDiscordMessage { heading() })
                 }
             }
         }
