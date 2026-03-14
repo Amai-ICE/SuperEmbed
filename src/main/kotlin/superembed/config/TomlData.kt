@@ -3,6 +3,7 @@ package uk.amaiice.superembed.config
 import com.akuleshov7.ktoml.file.TomlFileReader
 import dev.kord.common.entity.Snowflake
 import kotlinx.serialization.Serializable
+import uk.amaiice.superembed.Logger.logger
 import uk.amaiice.superembed.serializer.SnowflakeSerializer
 
 object TomlData {
@@ -14,7 +15,7 @@ object TomlData {
         }.fold(
             { return@fold it },
             {
-                println("failed to read config file.")
+                logger.error(it) { "Failed to read config file: $CONFIG_PATH" }
                 throw ConfigException(buildString {
                     appendLine("wrong setting in $CONFIG_PATH!!")
                     appendLine(it.message)

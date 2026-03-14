@@ -49,7 +49,7 @@ object TFCForgeHandler : ICommandHandler {
     )
 
     private fun List<Int>.emojiMapper(): String {
-        return this.joinToString("") { emojiList[it].toString() }
+        return this.mapNotNull { emojiList[it] }.joinToString("")
     }
 
     private fun List<Int>.hammerCountParser(): List<Int> {

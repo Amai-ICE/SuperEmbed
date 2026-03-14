@@ -5,8 +5,6 @@ import dev.kord.core.Kord
 import dev.kord.core.entity.interaction.GuildChatInputCommandInteraction
 import dev.kord.rest.builder.interaction.ChatInputCreateBuilder
 import uk.amaiice.superembed.Logger.logger
-import uk.amaiice.superembed.config.TomlData
-import uk.amaiice.superembed.isDebug
 
 object CommandHandler : AbstractHandler() {
     data class GuildCommandData(
@@ -32,15 +30,13 @@ object CommandHandler : AbstractHandler() {
 
     suspend fun guildCommandHandler(interaction: GuildChatInputCommandInteraction) {
         if (interaction.user.isBot) return
-        if (isDebug) {
-            logger.debug { "Debug mode is enabled! return: ${interaction.command.rootName}" }
-            val guildid = interaction.data.guildId.value ?: return
-            if (guildid.value != TomlData.get().secrets.devServerID.value) return
+        if (!HandlerExecutionPolicy.shouldProcessGuildEvent(interaction.data.guildId.value)) {
+            logger.debug { "Skip command ${interaction.command.rootName}: debug mode guild filter" }
+            return
         }
 
         handlers.forEach { handler ->
-            if (handler is ICommandHandler) {
-                if (handler.commandData.name == interaction.command.rootName)
+            if (handler is ICommandHandler && handler.commandData.name == interaction.command.rootName) {
                     logger.debug { "Handler ${handler::class.simpleName} is handling command ${interaction.command.rootName}" }
                 handler.handle(interaction)
             }
