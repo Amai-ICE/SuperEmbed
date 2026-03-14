@@ -77,7 +77,6 @@ object DiscordMessageExtender {
                 TimestampData.SIMPLE -> "<t:$result:S>"
                 TimestampData.FORMATTED -> "<t:$result:f>"
                 TimestampData.FORMATTED_WITH_WEEKLY -> "<t:$result:F>"
-                TimestampData.EMPTY -> result
             }
         }
 
