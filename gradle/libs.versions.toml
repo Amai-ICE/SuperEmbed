@@ -1,0 +1,36 @@
+[versions]
+kotlin = "2.3.10"
+#バージョンはおそらく全てのモジュールで共通なので、一つのみ。
+kord = "0.18.1"
+#Kotlin用TOMLライブラリ
+ktoml = "0.7.1"
+#ライブラリをすべてまとめたアーカイブ作成用。
+shadow = "9.3.1"
+#foojay-resolver = "1.0.0" バージョンカタログの評価順により、使用不能。
+#WebAPI叩く用。
+#最新版を使うとKordが異常終了する模様?
+ktor = "3.4.0"
+#KotlinX Serializaionのバージョン指定。
+serialization = "1.10.0"
+#SLF4J(ロガー)
+slf4j = "2.0.17"
+
+[libraries]
+kord-core = { module = "dev.kord:kord-core", version.ref = "kord" }
+
+ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
+ktoml-file = { module = "com.akuleshov7:ktoml-file", version.ref = "ktoml" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+gradle-shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+#foojay-resolver = {id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay-resolver"}
