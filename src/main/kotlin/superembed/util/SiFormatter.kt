@@ -2,7 +2,7 @@ package uk.amaiice.superembed.util
 
 object SiFormatter {
     fun Int.toSiFormat(): String {
-        val siMap = mutableMapOf<String, Int>(
+        val siMap = mutableMapOf(
             "B" to 1_000_000_000,
             "M" to 1_000_000,
             "K" to 1_000,

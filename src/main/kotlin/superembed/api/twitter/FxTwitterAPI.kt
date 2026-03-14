@@ -11,7 +11,7 @@ object FxTwitterAPI : AbstractHttpClient() {
     // x.comをapi.fxtwitter.comに変換
     private fun Url.formatUrl(): String {
         return URLBuilder(this).apply {
-            protocol = URLProtocol.Companion.HTTPS
+            protocol = URLProtocol.HTTPS
             host = "api.fxtwitter.com"
         }.buildString()
     }

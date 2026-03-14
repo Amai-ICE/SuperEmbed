@@ -33,7 +33,7 @@ object TFCForgeHandler : ICommandHandler {
         }
     )
 
-    private val emojiList = mapOf<Int, String>(
+    private val emojiList = mapOf(
         -3 to "<:3_:1380859818650370198>",
         -6 to "<:6_:1380859832353161256>",
         -9 to "<:9_:1380859842784133131>",
