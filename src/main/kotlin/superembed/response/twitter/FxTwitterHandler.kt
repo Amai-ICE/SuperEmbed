@@ -16,12 +16,16 @@ import uk.amaiice.superembed.Logger.logger
 import uk.amaiice.superembed.api.APIRouter
 import uk.amaiice.superembed.api.data.FxTwitterResponse
 import uk.amaiice.superembed.api.data.Tweet
+import uk.amaiice.superembed.config.TomlData
 import uk.amaiice.superembed.extend.DiscordMessageExtender
 import uk.amaiice.superembed.extend.DiscordMessageExtender.toDiscordMessage
 import uk.amaiice.superembed.handler.IMessageHandler
 import uk.amaiice.superembed.util.SiFormatter.toSiFormat
 
 object FxTwitterHandler : IMessageHandler {
+    private const val MAX_COMPONENT_TEXT_LENGTH = 4000
+    private const val TRUNCATE_SUFFIX = "..."
+
     enum class EngagementType(val iconID: String) {
         REPLIES("<:message:1470298416843067495>"),
         RETWEETS("<:repeat:1470301607202914304>"),
@@ -48,10 +52,17 @@ object FxTwitterHandler : IMessageHandler {
         return filteredEngagements.joinToString(" ") { "${it.first} ${it.second}" }
     }
 
+    private fun String.toComponentSafeText(fallback: String = "\u200B"): String {
+        val normalized = ifBlank { fallback }
+        if (normalized.length <= MAX_COMPONENT_TEXT_LENGTH) return normalized
+
+        val keepLength = (MAX_COMPONENT_TEXT_LENGTH - TRUNCATE_SUFFIX.length).coerceAtLeast(1)
+        return normalized.take(keepLength) + TRUNCATE_SUFFIX
+    }
+
     // ComponentV2のメッセージをハンドルできないのなんとかしてくれませんかね:rage:
     override suspend fun handle(message: Message) {
         val urlRegex = Regex("""https?://[^\s<>()]+""")
-
         val urls = urlRegex.findAll(message.content).map { it.value }.toList()
         if (urls.isEmpty()) return
 
@@ -60,105 +71,104 @@ object FxTwitterHandler : IMessageHandler {
 
 
         if (data is FxTwitterResponse) {
-            message.channel.createMessage {
-                flags = MessageFlags(MessageFlag.IsComponentsV2)
+            if (TomlData.get().ignoreFeatures.fxTwitter.contains(message.data.guildId.value?.value?.toString())) {
+                logger.info { "Ignored handling Twitter by ${message.author?.id} to URL: ${urls.first()} in guild ${message.data.guildId.value}" }
+                return
+            }
+            runCatching {
+                message.channel.createMessage {
+                    flags = MessageFlags(MessageFlag.IsComponentsV2)
 
-                logger.info { "Called Handling Twitter by ${message.author?.id} to URL: ${urls.first()}" }
+                    logger.info { "Called Handling Twitter by ${message.author?.id} to URL: ${urls.first()}" }
 
-                var tweet: Tweet? = data.tweet
+                    var tweet: Tweet? = data.tweet
 
-                container {
-                    do {
-                        val author = tweet!!.author
+                    container {
+                        do {
+                            val author = tweet!!.author
 
-                        val mediaUrls = tweet.media?.all?.map { it.url }?.filter { it.isNotBlank() }.orEmpty()
-                        val hasThumbnail = author.avatarUrl.isNotBlank()
-                        val useMediaGallery = mediaUrls.isNotEmpty()
-                        val useLinkButton = tweet.url.isNotBlank()
-                        accentColor = Color(java.awt.Color.CYAN.rgb)
+                            val mediaUrls = tweet.media?.all?.map { it.url }?.filter { it.isNotBlank() }.orEmpty()
+                            val hasThumbnail = author.avatarUrl.isNotBlank()
+                            val useMediaGallery = mediaUrls.isNotEmpty()
+                            accentColor = Color(java.awt.Color.CYAN.rgb)
 
-                        if (hasThumbnail) {
-                            section {
-                                val accountLink =
-                                    "@${author.screenName}".toDiscordMessage { link(author.url) }
-                                val accountDisplayName = author.name.toDiscordMessage { bold() }
-                                textDisplay(
-                                    "$accountLink / $accountDisplayName",
-                                )
-                                textDisplay(tweet!!.text)
-                                thumbnailAccessory {
-                                    url = author.avatarUrl
-                                    // Kord 0.18.0 で null を踏むケースを避けるため明示指定
-                                    description = "${author.screenName} avatar"
+                            if (hasThumbnail) {
+                                section {
+                                    val accountLink =
+                                        "@${author.screenName}".toDiscordMessage { link(author.url) }
+                                    val accountDisplayName = author.name.toDiscordMessage { bold() }
+                                    textDisplay(
+                                        "$accountLink / $accountDisplayName".toComponentSafeText(),
+                                    )
+                                    textDisplay(tweet!!.text.toComponentSafeText())
+                                    thumbnailAccessory {
+                                        url = author.avatarUrl
+                                        // Kord 0.18.0 で null を踏むケースを避けるため明示指定
+                                        description = "${author.screenName} avatar"
+                                    }
                                 }
+                            } else {
+                                textDisplay("@${author.screenName} / ${author.name}".toComponentSafeText())
+                                textDisplay(tweet.text.toComponentSafeText())
                             }
-                        } else {
-                            textDisplay("@${author.screenName} / ${author.name}")
-                            textDisplay(tweet.text)
-                        }
 
-                        if (useMediaGallery) {
+                            if (useMediaGallery) {
+                                separator {
+                                    spacing = SeparatorSpacingSize.Small
+                                }
+
+                                mediaGallery {
+                                    mediaUrls.forEach { mediaUrl ->
+                                        item(mediaUrl)
+                                    }
+                                }
+                            } else if (mediaUrls.isNotEmpty()) {
+                                textDisplay(mediaUrls.joinToString("\n").toComponentSafeText())
+                            }
+
                             separator {
                                 spacing = SeparatorSpacingSize.Small
                             }
-
-                            mediaGallery {
-                                mediaUrls.forEach { mediaUrl ->
-                                    item(mediaUrl)
+                            val simpleTimestamp = "${tweet.createdTimestamp}".toDiscordMessage(
+                                DiscordMessageExtender.style {
+                                    timestamp(DiscordMessageExtender.TimestampData.SIMPLE)
                                 }
-                            }
-                        } else if (mediaUrls.isNotEmpty()) {
-                            textDisplay(mediaUrls.joinToString("\n"))
-                        }
+                            )
 
-                        separator {
-                            spacing = SeparatorSpacingSize.Small
-                        }
+                            val relativeTimestamp = "${tweet.createdTimestamp}".toDiscordMessage(
+                                DiscordMessageExtender.style {
+                                    timestamp(DiscordMessageExtender.TimestampData.RELATIVE)
+                                }
+                            )
 
-                        textDisplay(
-                            tweet.getEngagements()
-                                .toDiscordMessage { subtext() }
-                        )
+                            textDisplay(
+                                "${tweet.getEngagements()} | Tweeted at $simpleTimestamp/ Relative: $relativeTimestamp".toComponentSafeText(
+                                    "-"
+                                ).toDiscordMessage { subtext() }
+                            )
 
-                        val simpleTimestamp = "${tweet.createdTimestamp}".toDiscordMessage(
-                            DiscordMessageExtender.style {
-                                timestamp(DiscordMessageExtender.TimestampData.SIMPLE)
-                            }
-                        )
 
-                        val relativeTimestamp = "${tweet.createdTimestamp}".toDiscordMessage(
-                            DiscordMessageExtender.style {
-                                timestamp(DiscordMessageExtender.TimestampData.RELATIVE)
-                            }
-                        )
 
-                        textDisplay(
-                            "Tweeted at $simpleTimestamp/ Relative: $relativeTimestamp".toDiscordMessage { subtext() }
-                        )
-
-                        if (useLinkButton) {
                             actionRow {
                                 linkButton(tweet!!.url) {
                                     label = "View on Twitter"
                                 }
                             }
-                        } else if (tweet.url.isNotBlank()) {
-                            separator {
-                                spacing = SeparatorSpacingSize.Small
-                            }
-                            textDisplay(tweet.url)
-                        }
 
 
-                        tweet = tweet.quote
-                        if (tweet != null) {
-                            separator {
-                                spacing = SeparatorSpacingSize.Large
+
+                            tweet = tweet.quote
+                            if (tweet != null) {
+                                separator {
+                                    spacing = SeparatorSpacingSize.Large
+                                }
                             }
-                        }
-                    } while (tweet != null)
+                        } while (tweet != null)
+                    }
+
                 }
-
+            }.onFailure { e ->
+                logger.error(e) { "Failed to create fxTwitter embed message for ${message.id}" }
             }
 
             runCatching {
