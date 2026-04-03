@@ -13,10 +13,13 @@ import uk.amaiice.superembed.handler.CommandHandler
 import uk.amaiice.superembed.handler.MessageHandler
 import uk.amaiice.superembed.response.twitter.FxTwitterHandler
 
-val isDebug = TomlData.get().secrets.isDebug
+val isDebug: Boolean
+    get() = TomlData.get().secrets.isDebug
 
 suspend fun main() {
-    if (isDebug) {
+    val config = TomlData.get()
+
+    if (config.secrets.isDebug) {
         // kotlin-logging (slf4j-simple) の DEBUG 出力を有効化
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "debug")
 
@@ -28,7 +31,7 @@ suspend fun main() {
     //System.setProperty("dev.kord.core.Kord", "off")
     //↑ 0.18.1で治ったらしいからコメントアウトした
 
-    val kord = Kord(TomlData.get().secrets.token)
+    val kord = Kord(config.secrets.token)
 
     logger.info { "Starting SuperEmbed..." }
 
