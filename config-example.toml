@@ -1,0 +1,7 @@
+[secrets]
+token = "BOT_TOKEN_HERE"
+devServerID = "0"
+isDebug = false
+
+[ignoreFeatures]
+fxTwitter = []
